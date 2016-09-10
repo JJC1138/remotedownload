@@ -84,7 +84,10 @@ class Downloader:
 def main():
     import sys
 
-    with open(sys.argv[1], 'rb') as f: downloader = Downloader(f.read())
+    if len(sys.argv) == 2:
+        with open(sys.argv[1], 'rb') as f: downloader = Downloader(f.read())
+    else:
+        downloader = Downloader(sys.stdin.buffer.read())
 
     for url in downloader.urls:
         with tempfile.NamedTemporaryFile('wb', suffix='.remotedownload', dir=os.getcwd(), delete=False) as out_file:
