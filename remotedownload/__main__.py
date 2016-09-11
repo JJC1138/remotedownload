@@ -6,6 +6,7 @@ import os
 import os.path
 import posixpath
 import tempfile
+import time
 import urllib.parse
 
 import requests
@@ -13,6 +14,29 @@ import requests
 from .api import *
 
 def log(message): print(message)
+
+class ProgressReporter:
+
+    def __init__(self):
+        self.start_time = time.time()
+
+    def __call__(self, done, doing):
+        progress = float(done) / doing if doing != 0 else 1
+        kbytesps = (done / (time.time() - self.start_time)) / 1024
+
+        bar_width = 50
+        bars = int(progress * bar_width)
+        spaces = bar_width - bars
+
+        print('\r' + \
+            '[' + ('#' * bars) + (' ' * spaces) + ']' + \
+            (' %d kB/s' % kbytesps), end='')
+
+        if done == doing:
+            self.finish()
+
+    def finish(self):
+        print('\r' + (' ' * 80), end='\r')
 
 class Downloader:
     def __init__(self, data):
@@ -53,7 +77,7 @@ class Downloader:
         self._data = data
         self.urls = [i[item_keys.url] for i in data[field_keys.items]]
 
-    def get(self, url, out_file, chunk_size=4096):
+    def get(self, url, out_file, chunk_size=4096, progress_reporter=None):
         post = self._data.get(field_keys.post_data)
         if post:
             response = self._session.post(url, data=post, headers={'Content-Type': 'application/x-www-form-urlencoded'})
@@ -62,8 +86,12 @@ class Downloader:
 
         response.raise_for_status()
 
+        total_bytes_written = 0
         for chunk in response.iter_content(chunk_size):
             out_file.write(chunk)
+            total_bytes_written += len(chunk)
+            if progress_reporter: progress_reporter(total_bytes_written, 0)
+        if progress_reporter: progress_reporter.finish()
 
         filename = None
 
@@ -91,7 +119,7 @@ def main():
 
     for url in downloader.urls:
         with tempfile.NamedTemporaryFile('wb', suffix='.remotedownload', dir=os.getcwd(), delete=False) as out_file:
-            filename = downloader.get(url, out_file)
+            filename = downloader.get(url, out_file, progress_reporter=ProgressReporter())
 
         if filename:
             final_filename = filename

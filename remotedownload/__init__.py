@@ -1,4 +1,4 @@
-__all__ = ['api', 'Downloader']
+__all__ = ['api', 'Downloader', 'ProgressReporter']
 
 from . import api
-from .__main__ import Downloader
+from .__main__ import Downloader, ProgressReporter
