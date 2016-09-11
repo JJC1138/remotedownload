@@ -1,26 +1,4 @@
-__all__ = ['StringAttributes', 'field_keys', 'item_keys', 'encoding']
+__all__ = ['api', 'Downloader']
 
-class StringAttributes():
-    def __init__(self, items):
-        for i in items:
-            setattr(self, i, i)
-    def __iter__(self):
-        return iter(self.__dict__.keys())
-
-field_keys = StringAttributes([
-    'label',
-    'referer',
-    'folder',
-    'headers',
-    'cookies',
-    'items',
-])
-field_keys.post_data = 'postData'
-field_keys.user_agent = 'userAgent'
-
-item_keys = StringAttributes([
-    'url',
-    'filename'
-])
-
-encoding = 'utf-8'
+from . import api
+from .__main__ import Downloader

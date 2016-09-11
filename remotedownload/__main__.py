@@ -10,7 +10,7 @@ import urllib.parse
 
 import requests
 
-from . import *
+from .api import *
 
 def log(message): print(message)
 
