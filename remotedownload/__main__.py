@@ -47,10 +47,11 @@ class Downloader:
         data = json.loads(data.decode(encoding))
 
         session = requests.Session()
-        session.headers.update({
-            'Referer': data[field_keys.referer],
-            'User-Agent': data[field_keys.user_agent],
-        })
+
+        referer = data.get(field_keys.referer)
+        if referer: session.headers['Referer'] = referer
+        user_agent = data.get(field_keys.user_agent)
+        if user_agent: session.headers['User-Agent'] = user_agent
 
         cookies_txt = data.get(field_keys.cookies)
         if cookies_txt:
