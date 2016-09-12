@@ -78,7 +78,7 @@ class Downloader:
         self._data = data
         self.urls = [i[item_keys.url] for i in data[field_keys.items]]
 
-    def get(self, url, out_file, chunk_size=4096, progress_reporter=None):
+    def get(self, url, out_file, chunk_size=2**20, progress_reporter=None):
         post = self._data.get(field_keys.post_data)
         if post:
             response = self._session.post(url, data=post, headers={'Content-Type': 'application/x-www-form-urlencoded'})
