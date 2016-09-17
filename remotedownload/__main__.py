@@ -1,5 +1,7 @@
 import cgi
+import datetime
 import email.parser
+import email.utils
 import http.cookiejar
 import json
 import os
@@ -109,7 +111,14 @@ class Downloader:
                 # Guess it from the URL
                 filename = posixpath.basename(urllib.parse.unquote(urllib.parse.urlparse(response.url).path))
 
-        return filename or None # return None instead of empty string
+        if not filename: filename = None # return None instead of empty string
+
+        last_modified = response.headers.get('Last-Modified') or None
+        if last_modified:
+            utc_timestamp = email.utils.mktime_tz(email.utils.parsedate_tz(last_modified))
+            last_modified = datetime.datetime.fromtimestamp(utc_timestamp, datetime.timezone.utc)
+
+        return (filename, last_modified)
 
 def main():
     import sys
@@ -121,7 +130,7 @@ def main():
 
     for url in downloader.urls:
         with tempfile.NamedTemporaryFile('wb', suffix='.remotedownload', dir=os.getcwd(), delete=False) as out_file:
-            filename = downloader.get(url, out_file, progress_reporter=ProgressReporter())
+            (filename, last_modified) = downloader.get(url, out_file, progress_reporter=ProgressReporter())
 
         if filename:
             final_filename = filename
@@ -139,5 +148,9 @@ def main():
             os.replace(out_file.name, final_filename)
         else:
             final_filename = out_file.name
+
+        if last_modified:
+            utc_timestamp = last_modified.timestamp()
+            os.utime(final_filename, times=(utc_timestamp, utc_timestamp))
 
         log(os.path.abspath(final_filename))
