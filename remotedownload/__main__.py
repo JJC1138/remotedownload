@@ -95,7 +95,8 @@ class Downloader:
             out_file.write(chunk)
             total_bytes_written += len(chunk)
             if progress_reporter: progress_reporter(total_bytes_written, total_file_size)
-        if progress_reporter and total_file_size == 0: progress_reporter.finish()
+        if progress_reporter and total_file_size == 0 and hasattr(progress_reporter, 'finish'):
+            progress_reporter.finish()
 
         filename = None
 
